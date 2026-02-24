@@ -9,6 +9,7 @@ export default function Home() {
   const [profile, setProfile] = useState<any>({});
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
   const [isDark, setIsDark] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<any>(null);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
 
@@ -19,7 +20,7 @@ export default function Home() {
       
     fetch('/api/portfolio')
       .then((res) => res.json())
-      .then((data) => setPortfolioItems(data.slice(0, 5))); // Get top 5 items for slider
+      .then((data) => setPortfolioItems(data.slice(0, 10))); // Get top 10 items for slider
       
     // Check initial dark mode preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -80,6 +81,18 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Backdrop for blurring everything else when hovering slider */}
+      <AnimatePresence>
+        {hoveredItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-white/40 dark:bg-black/60 backdrop-blur-md pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Hero Section */}
       <section className="pt-40 pb-32 px-6 max-w-6xl mx-auto relative overflow-hidden rounded-b-[3rem]">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-950/50 dark:via-neutral-950 dark:to-purple-950/50 -z-20 transition-colors duration-500"></div>
@@ -106,10 +119,52 @@ export default function Home() {
               {profile.title || 'Creative Professional'}
             </span>
           </h1>
-          <p className="text-2xl text-neutral-600 dark:text-neutral-300 mb-12 leading-relaxed max-w-2xl mx-auto font-medium">
-            {profile.about || 'Welcome to my creative portfolio.'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          
+          {/* Featured Portfolio Slider */}
+          {portfolioItems.length > 0 && (
+            <div className="relative w-full max-w-5xl mx-auto mb-12 z-50">
+              <div className="flex overflow-x-auto gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar items-center">
+                {portfolioItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    onMouseEnter={() => { playHover(); setHoveredItem(item); }}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    whileHover={{ scale: 1.15 }}
+                    className={`flex-none w-64 md:w-72 snap-center cursor-pointer relative rounded-3xl overflow-hidden bg-white dark:bg-neutral-900 border border-white dark:border-neutral-800 aspect-[4/3] transition-all duration-500 ${hoveredItem && hoveredItem.id !== item.id ? 'opacity-30 blur-sm scale-95' : ''} ${hoveredItem?.id === item.id ? 'shadow-2xl shadow-indigo-500/50 z-50' : 'shadow-xl shadow-indigo-100/50 dark:shadow-none z-10'}`}
+                  >
+                    {item.category_type === 'image' ? (
+                      <img 
+                        src={item.media_url} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                      />
+                    ) : (
+                      <div className="relative w-full h-full">
+                        <video 
+                          src={item.media_url} 
+                          className="w-full h-full object-cover"
+                          muted playsInline
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-black backdrop-blur-sm">
+                            <Play className="w-6 h-6 ml-1" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className={`absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-indigo-900/90 via-purple-900/50 to-transparent text-white transition-all duration-300 ${hoveredItem?.id === item.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                      <h3 className="text-xl font-bold mb-1 drop-shadow-md truncate">{item.title}</h3>
+                      <p className="text-xs text-indigo-100 line-clamp-2 font-medium">{item.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-50">
             <Link 
               to="/portfolio"
               onMouseEnter={() => playHover()}
@@ -129,56 +184,6 @@ export default function Home() {
           </div>
         </motion.div>
       </section>
-
-      {/* Featured Portfolio Slider */}
-      {portfolioItems.length > 0 && (
-        <section className="py-20 px-6 max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Sản phẩm nổi bật</h2>
-            <Link to="/portfolio" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline flex items-center gap-1">
-              Xem tất cả <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          
-          <div className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar">
-            {portfolioItems.map((item) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ scale: 1.03, y: -5 }}
-                onMouseEnter={() => playHover()}
-                className="flex-none w-80 md:w-96 snap-start cursor-pointer group relative rounded-3xl overflow-hidden bg-white dark:bg-neutral-900 shadow-xl shadow-indigo-100/50 dark:shadow-none border border-white dark:border-neutral-800 aspect-[4/3]"
-              >
-                {item.category_type === 'image' ? (
-                  <img 
-                    src={item.media_url} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    draggable={false}
-                  />
-                ) : (
-                  <div className="relative w-full h-full">
-                    <video 
-                      src={item.media_url} 
-                      className="w-full h-full object-cover"
-                      muted playsInline
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
-                      <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-black backdrop-blur-sm">
-                        <Play className="w-6 h-6 ml-1" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute inset-x-0 bottom-0 p-8 bg-gradient-to-t from-indigo-900/90 via-purple-900/50 to-transparent text-white opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0">
-                  <h3 className="text-2xl font-bold mb-2 drop-shadow-md">{item.title}</h3>
-                  <p className="text-sm text-indigo-100 line-clamp-2 font-medium">{item.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* About & Experience Split */}
       <section className="py-32 px-6 bg-white dark:bg-neutral-950 relative overflow-hidden transition-colors duration-500">
