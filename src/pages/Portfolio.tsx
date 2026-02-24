@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import useSound from 'use-sound';
 
 export default function Portfolio() {
   const [categories, setCategories] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
+  const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
 
   useEffect(() => {
     fetch('/api/categories').then(res => res.json()).then(setCategories);
@@ -17,24 +20,29 @@ export default function Portfolio() {
     e.preventDefault(); // Disable right click
   };
 
+  const handleItemClick = (item: any) => {
+    playClick();
+    setSelectedItem(item);
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-sans transition-colors duration-500">
       {/* Header */}
-      <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-40 border-b border-neutral-200">
+      <header className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md z-40 border-b border-neutral-200 dark:border-neutral-800 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-tighter flex items-center gap-2 hover:text-indigo-600 transition-colors">
+          <Link to="/" onMouseEnter={() => playHover()} onClick={() => playClick()} className="text-xl font-bold tracking-tighter flex items-center gap-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
             <ChevronLeft className="w-5 h-5" /> Quay lại
           </Link>
-          <div className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Sản phẩm đã làm</div>
+          <div className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Sản phẩm đã làm</div>
         </div>
       </header>
 
       <main className="pt-32 pb-20 px-6 max-w-7xl mx-auto relative">
         {/* Animated Background */}
         <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob"></div>
-          <div className="absolute bottom-[20%] left-[10%] w-[40%] h-[40%] bg-pink-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob animation-delay-2000"></div>
-          <div className="absolute top-[50%] left-[50%] w-[30%] h-[30%] bg-purple-400 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-400 dark:bg-indigo-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob transition-colors duration-500"></div>
+          <div className="absolute bottom-[20%] left-[10%] w-[40%] h-[40%] bg-pink-400 dark:bg-pink-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob animation-delay-2000 transition-colors duration-500"></div>
+          <div className="absolute top-[50%] left-[50%] w-[30%] h-[30%] bg-purple-400 dark:bg-purple-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob animation-delay-4000 transition-colors duration-500"></div>
         </div>
 
         {categories.map((category, index) => {
@@ -48,12 +56,12 @@ export default function Portfolio() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="mb-10 border-b border-indigo-100 pb-6"
+                className="mb-10 border-b border-indigo-100 dark:border-indigo-900/30 pb-6"
               >
-                <h2 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900">{category.name}</h2>
+                <h2 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300">{category.name}</h2>
                 <div className="flex items-center gap-3 mt-3">
-                  <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-widest">{category.type}</span>
-                  <div className="h-px flex-1 bg-gradient-to-r from-indigo-100 to-transparent"></div>
+                  <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest">{category.type}</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-indigo-100 dark:from-indigo-900/30 to-transparent"></div>
                 </div>
               </motion.div>
 
@@ -69,8 +77,9 @@ export default function Portfolio() {
                   <motion.div
                     key={item.id}
                     whileHover={{ scale: 1.03, y: -5 }}
-                    className="flex-none w-80 md:w-96 snap-start cursor-pointer group relative rounded-3xl overflow-hidden bg-white shadow-xl shadow-indigo-100/50 border border-white aspect-[4/3]"
-                    onClick={() => setSelectedItem(item)}
+                    onMouseEnter={() => playHover()}
+                    className="flex-none w-80 md:w-96 snap-start cursor-pointer group relative rounded-3xl overflow-hidden bg-white dark:bg-neutral-900 shadow-xl shadow-indigo-100/50 dark:shadow-none border border-white dark:border-neutral-800 aspect-[4/3]"
+                    onClick={() => handleItemClick(item)}
                   >
                     {category.type === 'image' ? (
                       <img 
@@ -130,7 +139,7 @@ export default function Portfolio() {
 
             {/* Logo Watermark */}
             <div className="absolute bottom-8 right-8 z-50 pointer-events-none opacity-50">
-              <div className="text-2xl font-bold text-white tracking-tighter">PORTFOLIO</div>
+              <div className="text-2xl font-bold text-white tracking-tighter drop-shadow-lg">PORTFOLIO</div>
             </div>
 
             {/* Content */}
@@ -139,29 +148,40 @@ export default function Portfolio() {
               onClick={(e) => e.stopPropagation()}
             >
               {selectedItem.category_type === 'image' ? (
-                <img 
+                <motion.img 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", bounce: 0.4 }}
                   src={selectedItem.media_url} 
                   alt={selectedItem.title}
-                  className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/10"
                   draggable={false}
                   onContextMenu={handleContextMenu}
                 />
               ) : (
-                <video 
+                <motion.video 
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", bounce: 0.4 }}
                   src={selectedItem.media_url} 
                   controls
                   controlsList="nodownload"
                   autoPlay
-                  className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/10"
                   onContextMenu={handleContextMenu}
                 />
               )}
               
               {/* Info Overlay in Lightbox */}
-              <div className="absolute bottom-8 left-8 max-w-md bg-black/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 text-white pointer-events-none">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="absolute bottom-8 left-8 max-w-md bg-black/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 text-white pointer-events-none"
+              >
                 <h3 className="text-2xl font-bold mb-2">{selectedItem.title}</h3>
                 <p className="text-white/70">{selectedItem.description}</p>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}

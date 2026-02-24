@@ -163,6 +163,10 @@ export default function AdminDashboard() {
                   <textarea name="experience" defaultValue={profile.experience} rows={4} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl"></textarea>
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">Contact Link (e.g. Facebook, Zalo, Email)</label>
+                  <input type="text" name="contact_link" defaultValue={profile.contact_link} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" placeholder="https://facebook.com/yourprofile" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">Avatar (Optional)</label>
                   <input type="file" name="avatar" accept="image/*" className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" />
                   <input type="hidden" name="avatar_url" value={profile.avatar_url || ''} />

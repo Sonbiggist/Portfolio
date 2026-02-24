@@ -37,7 +37,8 @@ db.exec(`
     title TEXT,
     about TEXT,
     experience TEXT,
-    avatar_url TEXT
+    avatar_url TEXT,
+    contact_link TEXT
   );
 
   CREATE TABLE IF NOT EXISTS categories (
@@ -55,12 +56,28 @@ db.exec(`
     FOREIGN KEY(category_id) REFERENCES categories(id)
   );
 
+  -- Add contact_link column if it doesn't exist
+  -- We use a try-catch in JS to handle this since SQLite doesn't have IF NOT EXISTS for columns
+`);
+
+try {
+  db.exec("ALTER TABLE profile ADD COLUMN contact_link TEXT");
+} catch (e) {
+  // Ignore error if column already exists
+}
+
+try {
+  // Update admin password if it exists
+  db.exec("UPDATE users SET password = 'Sonkk1610@' WHERE username = 'sonkk1610'");
+} catch (e) {}
+
+db.exec(`
   -- Insert default admin if not exists
-  INSERT OR IGNORE INTO users (username, password) VALUES ('admin', 'admin123');
+  INSERT OR IGNORE INTO users (username, password) VALUES ('sonkk1610', 'Sonkk1610@');
   
   -- Insert default profile if not exists
-  INSERT OR IGNORE INTO profile (id, name, title, about, experience, avatar_url) 
-  VALUES (1, 'John Doe', 'Creative Director', 'Welcome to my portfolio.', '10+ years of experience.', '');
+  INSERT OR IGNORE INTO profile (id, name, title, about, experience, avatar_url, contact_link) 
+  VALUES (1, 'John Doe', 'Creative Director', 'Welcome to my portfolio.', '10+ years of experience.', '', 'https://facebook.com');
 `);
 
 // Middleware
@@ -114,15 +131,15 @@ app.get('/api/profile', (req, res) => {
 });
 
 app.put('/api/profile', authenticateToken, upload.single('avatar'), (req, res) => {
-  const { name, title, about, experience } = req.body;
+  const { name, title, about, experience, contact_link } = req.body;
   let avatar_url = req.body.avatar_url;
 
   if (req.file) {
     avatar_url = '/uploads/' + req.file.filename;
   }
 
-  db.prepare('UPDATE profile SET name = ?, title = ?, about = ?, experience = ?, avatar_url = ? WHERE id = 1')
-    .run(name, title, about, experience, avatar_url);
+  db.prepare('UPDATE profile SET name = ?, title = ?, about = ?, experience = ?, avatar_url = ?, contact_link = ? WHERE id = 1')
+    .run(name, title, about, experience, avatar_url, contact_link);
   
   res.json({ success: true, avatar_url });
 });
