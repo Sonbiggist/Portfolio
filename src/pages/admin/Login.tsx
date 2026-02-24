@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Lock, User, ChevronLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -30,8 +31,24 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100 flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-6 font-sans relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-[60%] h-[60%] bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <Link to="/" className="absolute top-8 left-8 flex items-center gap-2 text-neutral-600 hover:text-indigo-600 transition-colors font-medium z-10">
+        <ChevronLeft className="w-5 h-5" /> Quay lại trang chủ
+      </Link>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden relative z-10"
+      >
         <div className="p-10">
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-tight text-neutral-900 mb-2">Admin Login</h1>
@@ -81,13 +98,13 @@ export default function AdminLogin() {
 
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-black hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-colors"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-0.5"
             >
-              Sign In
+              Đăng nhập
             </button>
           </form>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus, Trash2, Image as ImageIcon, Video, Folder, User } from 'lucide-react';
 
@@ -108,19 +108,19 @@ export default function AdminDashboard() {
         <nav className="flex-1 p-4 space-y-2">
           <button 
             onClick={() => setActiveTab('profile')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'profile' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'profile' ? 'bg-indigo-50 text-indigo-600' : 'text-neutral-600 hover:bg-neutral-100'}`}
           >
             <User className="w-5 h-5" /> Profile
           </button>
           <button 
             onClick={() => setActiveTab('categories')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'categories' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'categories' ? 'bg-indigo-50 text-indigo-600' : 'text-neutral-600 hover:bg-neutral-100'}`}
           >
             <Folder className="w-5 h-5" /> Categories
           </button>
           <button 
             onClick={() => setActiveTab('portfolio')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'portfolio' ? 'bg-black text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'portfolio' ? 'bg-indigo-50 text-indigo-600' : 'text-neutral-600 hover:bg-neutral-100'}`}
           >
             <ImageIcon className="w-5 h-5" /> Portfolio Items
           </button>
@@ -168,7 +168,7 @@ export default function AdminDashboard() {
                   <input type="hidden" name="avatar_url" value={profile.avatar_url || ''} />
                   {profile.avatar_url && <img src={profile.avatar_url} alt="Avatar" className="mt-4 w-20 h-20 rounded-full object-cover" />}
                 </div>
-                <button type="submit" className="px-6 py-3 bg-black text-white rounded-xl font-medium hover:bg-neutral-800">Save Changes</button>
+                <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-indigo-500/25">Save Changes</button>
               </form>
             </div>
           )}
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                       <option value="video">Video</option>
                     </select>
                   </div>
-                  <button type="submit" className="px-6 py-3 bg-black text-white rounded-xl font-medium hover:bg-neutral-800 flex items-center gap-2">
+                  <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-indigo-500/25 flex items-center gap-2">
                     <Plus className="w-5 h-5" /> Add
                   </button>
                 </form>
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Media File (Image/Video)</label>
                     <input type="file" name="media" required accept="image/*,video/*" className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" />
                   </div>
-                  <button type="submit" className="px-6 py-3 bg-black text-white rounded-xl font-medium hover:bg-neutral-800 flex items-center gap-2">
+                  <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-indigo-500/25 flex items-center gap-2">
                     <Plus className="w-5 h-5" /> Upload Item
                   </button>
                 </form>
