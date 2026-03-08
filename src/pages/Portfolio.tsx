@@ -10,6 +10,12 @@ export default function Portfolio() {
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
+  // Helper to extract youtube ID
+  const getYoutubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   useEffect(() => {
     fetch('/api/categories').then(res => res.json()).then(setCategories);
@@ -91,11 +97,13 @@ export default function Portfolio() {
                       />
                     ) : (
                       <div className="relative w-full h-full">
-                        <video 
-                          src={item.media_url} 
+                        <img 
+                          src={`https://img.youtube.com/vi/${getYoutubeId(item.media_url)}/maxresdefault.jpg`}
                           className="w-full h-full object-cover"
-                          muted playsInline
-                          onContextMenu={handleContextMenu}
+                          alt={item.title}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYoutubeId(item.media_url)}/hqdefault.jpg`;
+                          }}
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
                           <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-black backdrop-blur-sm">
@@ -159,17 +167,22 @@ export default function Portfolio() {
                   onContextMenu={handleContextMenu}
                 />
               ) : (
-                <motion.video 
+                <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", bounce: 0.4 }}
-                  src={selectedItem.media_url} 
-                  controls
-                  controlsList="nodownload"
-                  autoPlay
-                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/10"
-                  onContextMenu={handleContextMenu}
-                />
+                  className="w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10"
+                >
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${getYoutubeId(selectedItem.media_url)}?autoplay=1`} 
+                    title={selectedItem.title}
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                </motion.div>
               )}
               
               {/* Info Overlay in Lightbox */}

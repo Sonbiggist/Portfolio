@@ -12,6 +12,12 @@ export default function Home() {
   const [hoveredItem, setHoveredItem] = useState<any>(null);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
+  // Helper to extract youtube ID
+  const getYoutubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   useEffect(() => {
     fetch('/api/profile')
@@ -141,10 +147,14 @@ export default function Home() {
                       />
                     ) : (
                       <div className="relative w-full h-full">
-                        <video 
-                          src={item.media_url} 
+                        <img 
+                          src={`https://img.youtube.com/vi/${getYoutubeId(item.media_url)}/maxresdefault.jpg`}
                           className="w-full h-full object-cover"
-                          muted playsInline
+                          alt={item.title}
+                          onError={(e) => {
+                            // Fallback to hqdefault if maxresdefault is not available
+                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${getYoutubeId(item.media_url)}/hqdefault.jpg`;
+                          }}
                         />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors">
                           <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center text-black backdrop-blur-sm">

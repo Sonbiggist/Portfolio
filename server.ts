@@ -176,7 +176,7 @@ app.get('/api/portfolio', (req, res) => {
 
 app.post('/api/portfolio', authenticateToken, upload.single('media'), (req, res) => {
   const { category_id, title, description } = req.body;
-  let media_url = '';
+  let media_url = req.body.media_url || ''; // Get media_url from body for youtube links
 
   if (req.file) {
     media_url = '/uploads/' + req.file.filename;
@@ -190,12 +190,17 @@ app.post('/api/portfolio', authenticateToken, upload.single('media'), (req, res)
 
 app.delete('/api/portfolio/:id', authenticateToken, (req, res) => {
   const { id } = req.params;
-  const item: any = db.prepare('SELECT media_url FROM portfolio_items WHERE id = ?').get(id);
+  const item: any = db.prepare('SELECT media_url, category_id FROM portfolio_items WHERE id = ?').get(id);
   
   if (item && item.media_url) {
-    const filePath = path.join(__dirname, item.media_url);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const category: any = db.prepare('SELECT type FROM categories WHERE id = ?').get(item.category_id);
+    
+    // Only try to delete file if it's an image (since videos are now youtube links)
+    if (category && category.type === 'image' && !item.media_url.startsWith('http')) {
+      const filePath = path.join(__dirname, item.media_url);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
   }
 

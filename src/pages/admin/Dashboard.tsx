@@ -76,16 +76,27 @@ export default function AdminDashboard() {
     fetchData();
   };
 
+  const [selectedCategoryType, setSelectedCategoryType] = useState<string>('image');
+
   // Portfolio Item Handlers
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    
+    // If it's a video category, we send the youtube link as media_url directly
+    if (selectedCategoryType === 'video') {
+      const youtubeLink = formData.get('youtube_link') as string;
+      formData.set('media_url', youtubeLink);
+      formData.delete('media'); // Remove file input if any
+    }
+
     await fetch('/api/portfolio', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData
     });
-    (e.target as HTMLFormElement).reset();
+    form.reset();
     fetchData();
   };
 
@@ -245,7 +256,16 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">Category</label>
-                      <select name="category_id" required className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl">
+                      <select 
+                        name="category_id" 
+                        required 
+                        className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl"
+                        onChange={(e) => {
+                          const cat = categories.find(c => c.id.toString() === e.target.value);
+                          if (cat) setSelectedCategoryType(cat.type);
+                        }}
+                      >
+                        <option value="">Select a category</option>
                         {categories.map(cat => (
                           <option key={cat.id} value={cat.id}>{cat.name} ({cat.type})</option>
                         ))}
@@ -256,10 +276,19 @@ export default function AdminDashboard() {
                     <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
                     <textarea name="description" rows={3} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl"></textarea>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Media File (Image/Video)</label>
-                    <input type="file" name="media" required accept="image/*,video/*" className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" />
-                  </div>
+                  
+                  {selectedCategoryType === 'image' ? (
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">Image File</label>
+                      <input type="file" name="media" required accept="image/*" className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" />
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-700 mb-2">YouTube Link</label>
+                      <input type="url" name="youtube_link" required placeholder="https://www.youtube.com/watch?v=..." className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl" />
+                    </div>
+                  )}
+
                   <button type="submit" className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-indigo-500/25 flex items-center gap-2">
                     <Plus className="w-5 h-5" /> Upload Item
                   </button>
@@ -273,7 +302,10 @@ export default function AdminDashboard() {
                       {item.category_type === 'image' ? (
                         <img src={item.media_url} className="w-full h-full object-cover" alt="" />
                       ) : (
-                        <video src={item.media_url} className="w-full h-full object-cover" muted />
+                        <div className="w-full h-full flex items-center justify-center bg-neutral-800 text-white">
+                          <Video className="w-8 h-8 opacity-50" />
+                          <span className="absolute bottom-2 right-2 text-xs bg-black/50 px-2 py-1 rounded">YouTube</span>
+                        </div>
                       )}
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button onClick={() => handleDeleteItem(item.id)} className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg">
