@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Briefcase, User, Image as ImageIcon, LogIn, Moon, Sun, Send, Play } from 'lucide-react';
+import { ChevronRight, Briefcase, User, Image as ImageIcon, Moon, Sun, Send, Play } from 'lucide-react';
 import useSound from 'use-sound';
 import confetti from 'canvas-confetti';
+import { profileData, portfolioItemsData } from '../data';
 
 export default function Home() {
-  const [profile, setProfile] = useState<any>({});
-  const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(profileData);
+  const [portfolioItems, setPortfolioItems] = useState<any[]>(portfolioItemsData.slice(0, 10));
   const [isDark, setIsDark] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<any>(null);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
@@ -19,15 +20,31 @@ export default function Home() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  // Helper to convert Google Drive link to direct image link
+  const getGoogleDriveDirectLink = (url: string) => {
+    if (!url.includes('drive.google.com')) return url;
+    const regExp = /\/d\/([^\/]+)/;
+    const match = url.match(regExp);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?id=${match[1]}`;
+    }
+    const idParam = new URLSearchParams(new URL(url).search).get('id');
+    if (idParam) {
+      return `https://drive.google.com/uc?id=${idParam}`;
+    }
+    return url;
+  };
+
   useEffect(() => {
-    fetch('/api/profile')
-      .then((res) => res.json())
-      .then((data) => setProfile(data));
-      
-    fetch('/api/portfolio')
-      .then((res) => res.json())
-      .then((data) => setPortfolioItems(data.slice(0, 10))); // Get top 10 items for slider
-      
+    // Fetch data from JSON
+    fetch('/data.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.profile) setProfile(data.profile);
+        if (data.portfolioItems) setPortfolioItems(data.portfolioItems.slice(0, 10));
+      })
+      .catch(err => console.error('Error loading data:', err));
+
     // Check initial dark mode preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setIsDark(true);
@@ -79,10 +96,6 @@ export default function Home() {
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            
-            <Link to="/admin" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors text-neutral-900 dark:text-neutral-100">
-              <LogIn className="w-4 h-4" /> Đăng nhập
-            </Link>
           </nav>
         </div>
       </header>
@@ -140,7 +153,7 @@ export default function Home() {
                   >
                     {item.category_type === 'image' ? (
                       <img 
-                        src={item.media_url} 
+                        src={getGoogleDriveDirectLink(item.media_url)} 
                         alt={item.title} 
                         className="w-full h-full object-cover"
                         draggable={false}

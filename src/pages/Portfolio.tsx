@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useSound from 'use-sound';
+import { categoriesData, portfolioItemsData } from '../data';
 
 export default function Portfolio() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [items, setItems] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>(categoriesData);
+  const [items, setItems] = useState<any[]>(portfolioItemsData);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
@@ -17,9 +18,30 @@ export default function Portfolio() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  // Helper to convert Google Drive link to direct image link
+  const getGoogleDriveDirectLink = (url: string) => {
+    if (!url.includes('drive.google.com')) return url;
+    const regExp = /\/d\/([^\/]+)/;
+    const match = url.match(regExp);
+    if (match && match[1]) {
+      return `https://drive.google.com/uc?id=${match[1]}`;
+    }
+    const idParam = new URLSearchParams(new URL(url).search).get('id');
+    if (idParam) {
+      return `https://drive.google.com/uc?id=${idParam}`;
+    }
+    return url;
+  };
+
   useEffect(() => {
-    fetch('/api/categories').then(res => res.json()).then(setCategories);
-    fetch('/api/portfolio').then(res => res.json()).then(setItems);
+    // Fetch data from JSON
+    fetch('/data.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.categories) setCategories(data.categories);
+        if (data.portfolioItems) setItems(data.portfolioItems);
+      })
+      .catch(err => console.error('Error loading data:', err));
   }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -160,7 +182,7 @@ export default function Portfolio() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", bounce: 0.4 }}
-                  src={selectedItem.media_url} 
+                  src={getGoogleDriveDirectLink(selectedItem.media_url)} 
                   alt={selectedItem.title}
                   className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl ring-1 ring-white/10"
                   draggable={false}
