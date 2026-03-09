@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Briefcase, User, Image as ImageIcon, Moon, Sun, Send, Play } from 'lucide-react';
+import { ChevronRight, Briefcase, User, Image as ImageIcon, Moon, Sun, Send, Play, Download, ArrowUp, Sparkles, Ghost, Cat, Heart } from 'lucide-react';
 import useSound from 'use-sound';
 import confetti from 'canvas-confetti';
 import { profileData, portfolioItemsData } from '../data';
@@ -11,8 +11,13 @@ export default function Home() {
   const [portfolioItems, setPortfolioItems] = useState<any[]>(portfolioItemsData.slice(0, 10));
   const [isDark, setIsDark] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<any>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number }[]>([]);
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
+  const sliderRef = useRef<HTMLDivElement>(null);
+
   // Helper to extract youtube ID
   const getYoutubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -49,7 +54,36 @@ export default function Home() {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       setIsDark(true);
     }
-  }, []);
+
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 500);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Auto-scroll for featured slider
+    const sliderInterval = setInterval(() => {
+      if (sliderRef.current && !hoveredItem) {
+        const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          sliderRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          sliderRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+        }
+      }
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearInterval(sliderInterval);
+    };
+  }, [hoveredItem]);
 
   useEffect(() => {
     if (isDark) {
@@ -72,12 +106,136 @@ export default function Home() {
     });
   };
 
+  const handlePageClick = (e: React.MouseEvent) => {
+    const newSparkle = {
+      id: Date.now(),
+      x: e.clientX,
+      y: e.clientY,
+    };
+    setSparkles(prev => [...prev, newSparkle]);
+    setTimeout(() => {
+      setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+    }, 1000);
+  };
+
   const handleLinkClick = () => {
     playClick();
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-sans transition-colors duration-500">
+    <div 
+      className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-sans transition-colors duration-500"
+      onClick={handlePageClick}
+    >
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        @keyframes anime-float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        .anime-float {
+          animation: anime-float 4s ease-in-out infinite;
+        }
+      `}} />
+
+      {/* Anime Mascot following mouse */}
+      <motion.div
+        className="fixed pointer-events-none z-[100] hidden lg:block"
+        animate={{
+          x: mousePos.x + 20,
+          y: mousePos.y + 20,
+        }}
+        transition={{ type: "spring", damping: 20, stiffness: 150, mass: 0.5 }}
+      >
+        <motion.div 
+          animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="bg-white/80 dark:bg-neutral-800/80 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-indigo-100 dark:border-indigo-900/30"
+        >
+          <Cat className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
+        </motion.div>
+      </motion.div>
+
+      {/* Floating Decorative Anime Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div 
+          animate={{ 
+            y: [0, -40, 0], 
+            x: [0, 20, 0],
+            rotate: [0, 45, 0] 
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[15%] left-[5%] text-pink-400/20 dark:text-pink-400/10"
+        >
+          <Heart className="w-24 h-24 fill-current" />
+        </motion.div>
+        <motion.div 
+          animate={{ 
+            y: [0, 50, 0], 
+            x: [0, -30, 0],
+            rotate: [0, -30, 0] 
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[10%] right-[5%] text-indigo-400/20 dark:text-indigo-400/10"
+        >
+          <Sparkles className="w-32 h-32" />
+        </motion.div>
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.3, 0.1]
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[40%] right-[15%] text-purple-400/20 dark:text-purple-400/10"
+        >
+          <Ghost className="w-20 h-20" />
+        </motion.div>
+      </div>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.5, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 20 }}
+            onClick={() => {
+              playClick();
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onMouseEnter={() => playHover()}
+            className="fixed bottom-8 right-8 z-[60] w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-2xl shadow-indigo-500/40 flex items-center justify-center hover:scale-110 active:scale-95 transition-transform group"
+          >
+            <ArrowUp className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+            <div className="absolute -top-12 right-0 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-indigo-100 dark:border-indigo-900/30">
+              Lên đầu trang ✨
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Sparkle Effects */}
+      <AnimatePresence>
+        {sparkles.map(sparkle => (
+          <motion.div
+            key={sparkle.id}
+            initial={{ opacity: 1, scale: 0 }}
+            animate={{ opacity: 0, scale: 1.5, rotate: 180 }}
+            exit={{ opacity: 0 }}
+            className="fixed pointer-events-none z-[200] text-yellow-400"
+            style={{ left: sparkle.x - 10, top: sparkle.y - 10 }}
+          >
+            <Sparkles className="w-6 h-6 fill-current" />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md z-50 border-b border-neutral-200 dark:border-neutral-800 transition-colors duration-500">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -85,9 +243,10 @@ export default function Home() {
             {profile.name || 'Portfolio'}
           </div>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-neutral-600 dark:text-neutral-300 items-center">
-            <a href="#about" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Về bản thân</a>
-            <a href="#experience" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kinh nghiệm</a>
+            <Link to="/about" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Về bản thân</Link>
+            <Link to="/experience" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Kinh nghiệm</Link>
             <Link to="/portfolio" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Sản phẩm</Link>
+            <Link to="/contact" onMouseEnter={() => playHover()} onClick={handleLinkClick} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Liên hệ</Link>
             
             <button 
               onClick={toggleDarkMode}
@@ -142,7 +301,10 @@ export default function Home() {
           {/* Featured Portfolio Slider */}
           {portfolioItems.length > 0 && (
             <div className="relative w-full max-w-5xl mx-auto mb-12 z-50">
-              <div className="flex overflow-x-auto gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar items-center">
+              <div 
+                ref={sliderRef}
+                className="flex overflow-x-auto gap-6 pb-8 pt-4 snap-x snap-mandatory hide-scrollbar items-center"
+              >
                 {portfolioItems.map((item) => (
                   <motion.div
                     key={item.id}
@@ -227,9 +389,37 @@ export default function Home() {
               <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-purple-900 dark:from-indigo-300 dark:to-purple-300">Về bản thân</h2>
             </div>
             <div className="prose prose-lg prose-neutral dark:prose-invert">
-              <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-medium">
-                {profile.about}
-              </p>
+              <div className="flex flex-col sm:flex-row gap-8 items-start mb-6">
+                {profile.profile_image && (
+                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-indigo-500/20 flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
+                    <img 
+                      src={profile.profile_image} 
+                      alt={profile.name} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to a.png if a.jpg fails
+                        if ((e.target as HTMLImageElement).src.endsWith('.jpg')) {
+                          (e.target as HTMLImageElement).src = '/a.png';
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap font-medium m-0">
+                  {profile.about}
+                </p>
+              </div>
+              
+              {profile.cv_url && (
+                <a 
+                  href={profile.cv_url} 
+                  download 
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20 hover:-translate-y-1"
+                >
+                  <Download className="w-5 h-5" />
+                  Tải CV của tôi
+                </a>
+              )}
             </div>
           </motion.div>
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Sparkles, Heart, Star, Home, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useSound from 'use-sound';
 import { categoriesData, portfolioItemsData } from '../data';
@@ -9,6 +9,7 @@ export default function Portfolio() {
   const [categories, setCategories] = useState<any[]>(categoriesData);
   const [items, setItems] = useState<any[]>(portfolioItemsData);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const scrollRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [playHover] = useSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3', { volume: 0.25 });
   const [playClick] = useSound('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', { volume: 0.5 });
   // Helper to extract youtube ID
@@ -42,6 +43,22 @@ export default function Portfolio() {
         if (data.portfolioItems) setItems(data.portfolioItems);
       })
       .catch(err => console.error('Error loading data:', err));
+
+    // Auto-scroll for each category
+    const interval = setInterval(() => {
+      Object.values(scrollRefs.current).forEach(ref => {
+        if (ref instanceof HTMLDivElement) {
+          const { scrollLeft, scrollWidth, clientWidth } = ref;
+          if (scrollLeft + clientWidth >= scrollWidth - 10) {
+            ref.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            ref.scrollBy({ left: 300, behavior: 'smooth' });
+          }
+        }
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -56,12 +73,15 @@ export default function Portfolio() {
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50 font-sans transition-colors duration-500">
       {/* Header */}
-      <header className="fixed top-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md z-40 border-b border-neutral-200 dark:border-neutral-800 transition-colors duration-500">
+      <header className="fixed top-0 w-full bg-black/80 backdrop-blur-md z-50 border-b border-white/10 transition-colors duration-500">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" onMouseEnter={() => playHover()} onClick={() => playClick()} className="text-xl font-bold tracking-tighter flex items-center gap-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-            <ChevronLeft className="w-5 h-5" /> Quay lại
+          <Link to="/" onMouseEnter={() => playHover()} onClick={() => playClick()} className="flex items-center gap-2 text-indigo-400 hover:text-white transition-colors font-bold">
+            <Home className="w-5 h-5" /> Home
           </Link>
-          <div className="font-medium bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">Sản phẩm đã làm</div>
+          <div className="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">PORTFOLIO</div>
+          <a href="https://www.facebook.com/Nxs.brohome" target="_blank" rel="noopener noreferrer" onMouseEnter={() => playHover()} onClick={() => playClick()} className="flex items-center gap-2 text-pink-400 hover:text-white transition-colors font-bold">
+            <Facebook className="w-5 h-5" /> Contact
+          </a>
         </div>
       </header>
 
@@ -71,6 +91,29 @@ export default function Portfolio() {
           <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-400 dark:bg-indigo-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob transition-colors duration-500"></div>
           <div className="absolute bottom-[20%] left-[10%] w-[40%] h-[40%] bg-pink-400 dark:bg-pink-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob animation-delay-2000 transition-colors duration-500"></div>
           <div className="absolute top-[50%] left-[50%] w-[30%] h-[30%] bg-purple-400 dark:bg-purple-600 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[100px] opacity-30 dark:opacity-20 animate-blob animation-delay-4000 transition-colors duration-500"></div>
+          
+          {/* Anime floating icons */}
+          <motion.div 
+            animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute top-[15%] left-[10%] text-indigo-500/10"
+          >
+            <Star className="w-16 h-16 fill-current" />
+          </motion.div>
+          <motion.div 
+            animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+            className="absolute bottom-[15%] right-[10%] text-pink-500/10"
+          >
+            <Heart className="w-20 h-20 fill-current" />
+          </motion.div>
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute top-[40%] right-[5%] text-purple-500/10"
+          >
+            <Sparkles className="w-12 h-12" />
+          </motion.div>
         </div>
 
         {categories.map((category, index) => {
@@ -95,6 +138,7 @@ export default function Portfolio() {
 
               {/* Slider Container */}
               <motion.div 
+                ref={el => scrollRefs.current[category.id] = el}
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
@@ -104,19 +148,30 @@ export default function Portfolio() {
                 {categoryItems.map((item) => (
                   <motion.div
                     key={item.id}
-                    whileHover={{ scale: 1.03, y: -5 }}
+                    whileHover={{ 
+                      scale: 1.05, 
+                      y: -10,
+                      rotateX: 5,
+                      rotateY: 5,
+                      boxShadow: "0 20px 40px rgba(99, 102, 241, 0.4)"
+                    }}
                     onMouseEnter={() => playHover()}
-                    className="flex-none w-80 md:w-96 snap-start cursor-pointer group relative rounded-3xl overflow-hidden bg-white dark:bg-neutral-900 shadow-xl shadow-indigo-100/50 dark:shadow-none border border-white dark:border-neutral-800 aspect-[4/3]"
+                    className="flex-none w-80 md:w-96 snap-start cursor-pointer group relative rounded-3xl overflow-hidden bg-neutral-900 border border-white/10 aspect-[4/3] perspective-1000"
                     onClick={() => handleItemClick(item)}
                   >
                     {category.type === 'image' ? (
-                      <img 
-                        src={item.media_url} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        onContextMenu={handleContextMenu}
-                        draggable={false}
-                      />
+                      <div className="relative w-full h-full">
+                        <img 
+                          src={item.media_url} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onContextMenu={handleContextMenu}
+                          draggable={false}
+                        />
+                        {/* Hologram Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,rgba(99,102,241,0.05)_50%,transparent_100%)] bg-[length:100%_4px] animate-scan opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      </div>
                     ) : (
                       <div className="relative w-full h-full">
                         <img 
@@ -223,6 +278,13 @@ export default function Portfolio() {
       </AnimatePresence>
 
       <style dangerouslySetInnerHTML={{__html: `
+        @keyframes scan {
+          from { transform: translateY(-100%); }
+          to { transform: translateY(100%); }
+        }
+        .animate-scan {
+          animation: scan 3s linear infinite;
+        }
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
