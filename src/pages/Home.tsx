@@ -42,7 +42,7 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch data from JSON
-    fetch('/data.json')
+    fetch('data.json')
       .then(res => res.json())
       .then(data => {
         if (data.profile) setProfile(data.profile);

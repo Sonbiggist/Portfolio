@@ -36,7 +36,7 @@ export default function Portfolio() {
 
   useEffect(() => {
     // Fetch data from JSON
-    fetch('/data.json')
+    fetch('data.json')
       .then(res => res.json())
       .then(data => {
         if (data.categories) setCategories(data.categories);

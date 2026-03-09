@@ -13,7 +13,7 @@ export default function Experience() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/data.json')
+    fetch('data.json')
       .then(res => res.json())
       .then(data => {
         if (data.profile) setProfile(data.profile);
